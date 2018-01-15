@@ -1,0 +1,7 @@
+*.o
+maxinfluence/
+data/
+baseline/nodeSelect
+result/
+draw/
+time/
