@@ -106,32 +106,34 @@ void algo_cimm(){
 	HillClimbing* hill_climbing = new HillClimbing(graph);
 	CIMM* cimm = new CIMM(graph, hill_climbing);
 	
-	set<int>* group_1 = NULL;
-	cout << "group:" << endl;
+	vector<int>* group_1 = NULL;
+	cout << "group: 0" << endl;
 	int group;
-	cin >> group;
+  group = 0;
+	//cin >> group;
 	if(group == 1){
 		int group_1_size = int(graph->getSize() / 2);
-		group_1 = new set<int>;
+		group_1 = new vector<int>;
+		group_1->resize(graph->getSize(), 0);
 		srand(10);
 		for(int i=0; i<group_1_size; i++){
-			group_1->insert(rand()%(graph->getSize()));
+			group_1->at(rand()%(graph->getSize())) = 1;
 		}
 	}
 	ofstream file, file_time;
 	srand(time(0));
 
 	double delta = 0.1;
-	double eps_list[3] = {2, 1, 0.5};
+	double eps_list[1] = {0.5};
 
-	for(int eps_id = 0; eps_id < 3; eps_id ++){
+	for(int eps_id = 0; eps_id < 1; eps_id ++){
 		double eps = eps_list[eps_id];
 		file.open(save_address + "_cimm_eps=" + to_string(eps) +"_group_" + to_string(group) +"_new", ios::out);
 		file_time.open(time_address + "_cimm_eps=" + to_string(eps) + "_group_" + to_string(group) + "_new", ios::out);
 		for(int k = 5; k < 51; k=k+5){
 			double running_time = 0.0;
 			double num_spread = 0.0;
-			for (int iter = 0; iter < 5; iter++)
+			for (int iter = 0; iter < 1; iter++)
 			{
 				EventTimer* pctimer = new EventTimer();
 				pctimer->SetTimeEvent("start");
@@ -139,13 +141,13 @@ void algo_cimm(){
 				pctimer->SetTimeEvent("end");
 				running_time += pctimer->TimeSpan("start", "end");
 				delete pctimer;
-				int sample_num_1 = 10000;
+				int sample_num_1 = 100;
 				int sample_num_2 = 1;
 				num_spread += spread(graph, value, sample_num_1, sample_num_2);
 				delete value;
 			}
-			running_time = running_time / 5.0;
-			num_spread = num_spread / 5.0;
+			running_time = running_time / 1.0;
+			num_spread = num_spread / 1.0;
 			cout << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
 			file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
 			file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
@@ -238,99 +240,58 @@ void algo_cimm_alternative() {
 	//HillClimbing* hill_climbing = new HillClimbing(graph);
 	//CIMM* cimm = new CIMM(graph, hill_climbing);
 
-	srand(time(0));
+	vector<int>* group_1 = NULL;
+	cout << "group: 0" << endl;
+	int group;
+  group = 0;
+	//cin >> group;
+ 	if(group == 1){
+		int group_1_size = int(graph->getSize() / 2);
+		group_1 = new vector<int>;
+		group_1->resize(graph->getSize(), 0);
+		srand(10);
+		for(int i=0; i<group_1_size; i++){
+			group_1->at(rand()%(graph->getSize())) = 1;
+		}
+	}
+
 	ofstream file, file_time;
+	srand(time(0));
 
-	double eps = 2;
-
-	file.open(save_address + "_cimm_eps=2_pseudo", ios::out);
-	file_time.open(time_address + "_cimm_eps=2_pseudo", ios::out);
 	double delta = 0.1;
-	for (int k = 5; k < 51; k = k + 5) {
-		double running_time = 0.0;
-		double num_spread = 0.0;
-		for (int iter = 0; iter < 5; iter++)
-		{
-			EventTimer* pctimer = new EventTimer();
-			pctimer->SetTimeEvent("start");
-			vector<double>* value = cimm_pseudo->run(k, delta, eps, l);
-			pctimer->SetTimeEvent("end");
-			running_time += pctimer->TimeSpan("start", "end");
-			delete pctimer;
-			int sample_num_1 = 10000;
-			int sample_num_2 = 1;
-			num_spread += spread(graph, value, sample_num_1, sample_num_2);
-			delete value;
+  //double eps_list[1] = {0.5};
+	double eps_list[3] = { 2, 1, 0.5 };
+
+	for (int eps_id = 0; eps_id < 3; eps_id++) {
+		double eps = eps_list[eps_id];
+		file.open(save_address + "_cimm_eps=" + to_string(eps) + "_pseudo" + "_group_" + to_string(group) + "_new", ios::out);//test
+		file_time.open(time_address + "_cimm_eps=" + to_string(eps) + "_pseudo" + "_group_" + to_string(group) + "_new", ios::out);
+		for (int k = 5; k < 51; k = k + 5) {
+			double running_time = 0.0;
+			double num_spread = 0.0;
+			for (int iter = 0; iter < 1; iter++)//iter 5
+			{
+				EventTimer* pctimer = new EventTimer();
+				pctimer->SetTimeEvent("start");
+				vector<double>* value = cimm_pseudo->run(k, delta, eps, l, group_1);
+				pctimer->SetTimeEvent("end");
+				running_time += pctimer->TimeSpan("start", "end");
+				delete pctimer;
+				int sample_num_1 = 100;//10000
+				int sample_num_2 = 1;
+				num_spread += spread(graph, value, sample_num_1, sample_num_2);
+				delete value;
+			}
+			running_time = running_time / 1.0;//divide 5
+			num_spread = num_spread / 1.0;//divide 5
+			cout << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
+			file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
+			file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
+			cout << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
 		}
-		running_time = running_time / 5.0;
-		num_spread = num_spread / 5.0;
-		cout << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-		cout << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
+		file.close();
+		file_time.close();
 	}
-	file.close();
-	file_time.close();
-
-	eps = 1;
-
-	file.open(save_address + "_cimm_eps=1_pseudo", ios::out);
-	file_time.open(time_address + "_cimm_eps=1_pseudo", ios::out);
-	for (int k = 5; k < 51; k = k + 5) {
-		double running_time = 0.0;
-		double num_spread = 0.0;
-		for (int iter = 0; iter < 5; iter++)
-		{
-			EventTimer* pctimer = new EventTimer();
-			pctimer->SetTimeEvent("start");
-			vector<double>* value = cimm_pseudo->run(k, delta, eps, l);
-			pctimer->SetTimeEvent("end");
-			running_time += pctimer->TimeSpan("start", "end");
-			delete pctimer;
-			int sample_num_1 = 10000;
-			int sample_num_2 = 1;
-			num_spread += spread(graph, value, sample_num_1, sample_num_2);
-			delete value;
-		}
-		running_time = running_time / 5.0;
-		num_spread = num_spread / 5.0;
-		cout << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-		cout << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-	}
-	file.close();
-	file_time.close();
-
-	eps = 0.5;
-
-	file.open(save_address + "_cimm_eps=0.5_pseudo", ios::out);
-	file_time.open(time_address + "_cimm_eps=0.5_pseudo", ios::out);
-	for (int k = 5; k < 51; k = k + 5) {
-		double running_time = 0.0;
-		double num_spread = 0.0;
-		for (int iter = 0; iter < 5; iter++)
-		{
-			EventTimer* pctimer = new EventTimer();
-			pctimer->SetTimeEvent("start");
-			vector<double>* value = cimm_pseudo->run(k, delta, eps, l);
-			pctimer->SetTimeEvent("end");
-			running_time += pctimer->TimeSpan("start", "end");
-			delete pctimer;
-			int sample_num_1 = 10000;
-			int sample_num_2 = 1;
-			num_spread += spread(graph, value, sample_num_1, sample_num_2);
-			delete value;
-		}
-		running_time = running_time / 5.0;
-		num_spread = num_spread / 5.0;
-		cout << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-		cout << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-	}
-	file.close();
-	file_time.close();
 }
 
 void algo_cimm_2(){
@@ -351,16 +312,18 @@ void algo_cimm_2(){
 
 	CIMM* cimm = new CIMM(graph, hill_climbing);
 
-	set<int>* group_1 = NULL;
-	cout << "group:" << endl;
+	vector<int>* group_1 = NULL;
+	cout << "group: 1" << endl;// 0
 	int group;
-	cin >> group;
+  group = 1;
+	//cin >> group;
 	if(group == 1){
 		int group_1_size = int(hill_climbing->prob_strat_to_node->size() / 2);
-		group_1 = new set<int>;
+		group_1 = new vector<int>;
+		group_1->resize(hill_climbing->prob_strat_to_node->size(), 0);
 		srand(10);
 		for(int i=0; i<group_1_size; i++){
-			group_1->insert(rand()%(hill_climbing->prob_strat_to_node->size()));
+			group_1->at(rand()%(hill_climbing->prob_strat_to_node->size())) = 1;
 		}
 	}
 
@@ -380,7 +343,7 @@ void algo_cimm_2(){
 		for(int k = 5; k < 51; k=k+5){
 			double running_time = 0.0;
 			double num_spread = 0.0;
-			for (int iter = 0; iter < 5; iter++)
+			for (int iter = 0; iter < 1; iter++)
 			{
 				EventTimer* pctimer = new EventTimer();
 				pctimer->SetTimeEvent("start");
@@ -388,13 +351,13 @@ void algo_cimm_2(){
 				pctimer->SetTimeEvent("end");
 				running_time += pctimer->TimeSpan("start", "end");
 				delete pctimer;
-				int sample_num_1 = 10000;
+				int sample_num_1 = 100;//10000
 				int sample_num_2 = 1;
 				num_spread += spread_2(graph, value, sample_num_1, sample_num_2, prob_activate);
 				delete value;
 			}
-			running_time = running_time / 5.0;
-			num_spread = num_spread / 5.0;
+			running_time = running_time / 1.0;
+			num_spread = num_spread / 1.0;
 			cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
 			file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
 			file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
@@ -414,9 +377,6 @@ void algo_cimm_alternative_2() {
 	dataset_2 = "../data_2/" + dataset;
 	dataset = "../data/" + dataset;
 	SparseMatrix* graph = inputNetwork(dataset);
-	//input data of location
-	double delta = 1;
-	double l = 1.0;
 
 	vector<vector<pair<int, double>*>*>* prob_activate = inputLocToNode(dataset_2);
 
@@ -424,99 +384,61 @@ void algo_cimm_alternative_2() {
 
 	CIMM_pseudo* cimm_pseudo = new CIMM_pseudo(graph, hill_climbing);
 
+	vector<int>* group_1 = NULL;
+	cout << "group: 1" << endl;
+	int group;
+  group = 1;
+	//cin >> group;
+ 	if(group == 1){
+		int group_1_size = int(hill_climbing->prob_strat_to_node->size() / 2);
+		group_1 = new vector<int>;
+		group_1->resize(hill_climbing->prob_strat_to_node->size(), 0);
+		srand(10);
+		for(int i=0; i<group_1_size; i++){
+			group_1->at(rand()%(hill_climbing->prob_strat_to_node->size())) = 1;
+		}
+	}
+
 	srand(time(0));
 	ofstream file, file_time;
 
-	double eps = 0.5;
+	double delta = 1;
+	double l = 1.0;
 
-	file.open(save_address + "_cimm_2_eps=0.5_alternative_2", ios::out);
-	file_time.open(time_address + "_cimm_2_eps=0.5_alternative_2", ios::out);
-	for (int k = 5; k < 51; k = k + 5) {
-		double running_time = 0.0;
-		double num_spread = 0.0;
-		for (int iter = 0; iter < 5; iter++)
-		{
-			EventTimer* pctimer = new EventTimer();
-			pctimer->SetTimeEvent("start");
-			vector<double>* value = cimm_pseudo->run(k, delta, eps, l);
-			pctimer->SetTimeEvent("end");
-			running_time += pctimer->TimeSpan("start", "end");
-			delete pctimer;
-			int sample_num_1 = 10000;
-			int sample_num_2 = 1;
-			num_spread += spread_2(graph, value, sample_num_1, sample_num_2, prob_activate);
-			delete value;
+	double eps_list[3] = { 2, 1, 0.5 };
+
+	for (int eps_id = 0; eps_id < 3; eps_id++) {
+		double eps = eps_list[eps_id];
+
+		file.open(save_address + "_cimm_2_eps=" + to_string(eps) + "_alternative_2" + "_group_" + to_string(group) + "_new", ios::out);
+		file_time.open(time_address + "_cimm_2_eps=" + to_string(eps) + "_alternative_2" + "_group_" + to_string(group) + "_new", ios::out);
+
+		for (int k = 5; k < 51; k = k + 5) {
+			double running_time = 0.0;
+			double num_spread = 0.0;
+			for (int iter = 0; iter < 1; iter++)
+			{
+				EventTimer* pctimer = new EventTimer();
+				pctimer->SetTimeEvent("start");
+				vector<double>* value = cimm_pseudo->run(k, delta, eps, l, group_1);
+				pctimer->SetTimeEvent("end");
+				running_time += pctimer->TimeSpan("start", "end");
+				delete pctimer;
+				int sample_num_1 = 100;
+				int sample_num_2 = 1;
+				num_spread += spread_2(graph, value, sample_num_1, sample_num_2, prob_activate);
+				delete value;
+			}
+			running_time = running_time / 1.0;
+			num_spread = num_spread / 1.0;
+			cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
+			file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
+			file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
+			cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
 		}
-		running_time = running_time / 5.0;
-		num_spread = num_spread / 5.0;
-		cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-		cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
+		file.close();
+		file_time.close();
 	}
-	file.close();
-	file_time.close();
-
-	eps = 1;
-
-	file.open(save_address + "_cimm_2_eps=1_alternative_2", ios::out);
-	file_time.open(time_address + "_cimm_2_eps=1_alternative_2", ios::out);
-	for (int k = 5; k < 51; k = k + 5) {
-		double running_time = 0.0;
-		double num_spread = 0.0;
-		for (int iter = 0; iter < 5; iter++)
-		{
-			EventTimer* pctimer = new EventTimer();
-			pctimer->SetTimeEvent("start");
-			vector<double>* value = cimm_pseudo->run(k, delta, eps, l);
-			pctimer->SetTimeEvent("end");
-			running_time += pctimer->TimeSpan("start", "end");
-			delete pctimer;
-			int sample_num_1 = 10000;
-			int sample_num_2 = 1;
-			num_spread += spread_2(graph, value, sample_num_1, sample_num_2, prob_activate);
-			delete value;
-		}
-		running_time = running_time / 5.0;
-		num_spread = num_spread / 5.0;
-		cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-		cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-	}
-	file.close();
-	file_time.close();
-
-	eps = 2;
-
-	file.open(save_address + "_cimm_2_eps=2_alternative_2", ios::out);
-	file_time.open(time_address + "_cimm_2_eps=2_alternative_2", ios::out);
-	for (int k = 5; k < 51; k = k + 5) {
-		double running_time = 0.0;
-		double num_spread = 0.0;
-		for (int iter = 0; iter < 5; iter++)
-		{
-			EventTimer* pctimer = new EventTimer();
-			pctimer->SetTimeEvent("start");
-			vector<double>* value = cimm_pseudo->run(k, delta, eps, l);
-			pctimer->SetTimeEvent("end");
-			running_time += pctimer->TimeSpan("start", "end");
-			delete pctimer;
-			int sample_num_1 = 10000;
-			int sample_num_2 = 1;
-			num_spread += spread_2(graph, value, sample_num_1, sample_num_2, prob_activate);
-			delete value;
-		}
-		running_time = running_time / 5.0;
-		num_spread = num_spread / 5.0;
-		cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file_time << "k= " << k << " delta= " << delta << " eps= " << eps << " time= " << running_time << endl;
-		file << "k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-		cout << dataset << " :k= " << k << " delta= " << delta << " eps= " << eps << " spread= " << num_spread << endl;
-	}
-	file.close();
-	file_time.close();
-
 }
 
 void algo_mc_greedy(){

@@ -16,7 +16,7 @@ double HillClimbing::function(double x)
 	}
 }
 
-pair<vector<double>*, double>* HillClimbing::run(int k, int theta, double delta, vector<vector<int>*>* RR_sets, set<int>* group_1){
+pair<vector<double>*, double>* HillClimbing::run(int k, int theta, double delta, vector<vector<int>*>* RR_sets, vector<int>* group_1){
 	pair<vector<double>*, double>* res = new pair<vector<double>*, double>;
 	res->first = new vector<double>;
 	res->second = 0.0;
@@ -33,19 +33,17 @@ pair<vector<double>*, double>* HillClimbing::run(int k, int theta, double delta,
 	if(type == 0){
 		res->first->resize(n, 0.0);
 		int* full_group_id = NULL;
+		double group_1_val = 0;
+		double group_2_val = 0;
 		for(int i = 0; i < double(k) / delta; i++){
+			int opt = iter_greedy(RR_sets, s, res->first, delta, n, group_1, full_group_id);
 			if((group_1) && (!full_group_id)){
-				double group_1_val = 0;
-				double group_2_val = 0;
-				for(int j = 0; j < n; j ++){
-					set<int>::iterator it = group_1->find(j);
-					if (it != group_1->end())
-					{
-						group_1_val += res->first->at(j);
-					}
-					else{
-						group_2_val += res->first->at(j);
-					}
+				if (group_1->at(opt) == 1)
+				{
+					group_1_val += delta;
+				}
+				else{
+					group_2_val += delta;
 				}
 				if(group_1_val >= delta * int(double(k) / ( 2 * delta))){
 					int full_group_id_val = 1; 
@@ -65,7 +63,6 @@ pair<vector<double>*, double>* HillClimbing::run(int k, int theta, double delta,
 			//		cout << "group 2 skip" << endl;
 			//	}
 			//}
-			iter_greedy(RR_sets, s, res->first, delta, n, group_1, full_group_id);
 		}
 	}
 	else if(type == 1){
@@ -85,30 +82,27 @@ pair<vector<double>*, double>* HillClimbing::run(int k, int theta, double delta,
 			}
 		}
 		int* full_group_id = NULL;
+		int group_1_val = 0;
+		int group_2_val = 0;
 		for(int i = 0; i < double(k) / delta; i++){
+			int opt = iter_greedy_2(RR_sets, s, res->first, delta, n, strat_to_node_and_RR, group_1, full_group_id);
 			if((group_1) && (!full_group_id)){
-				int group_1_val = 0;
-				int group_2_val = 0;
-				for(int j = 0; j < d; j ++){
-					set<int>::iterator it = group_1->find(j);
-					if (it != group_1->end())
-					{
-						group_1_val += res->first->at(j);
-					}
-					else{
-						group_2_val += res->first->at(j);
-					}
+				if (group_1->at(opt) == 1)
+				{
+					group_1_val += delta;
+				}
+				else{
+					group_2_val += delta;
 				}
 				if(group_1_val >= int(double(k) / ( 2 * delta))){
-					int full_group_id_val = 0; 
+					int full_group_id_val = 1; 
 					full_group_id = &full_group_id_val;
 				}
 				else if(group_2_val >= k - int(double(k) / ( 2 * delta))){
-					int full_group_id_val = 0; 
+					int full_group_id_val = 2; 
 					full_group_id = &full_group_id_val;
 				}
 			}
-			iter_greedy_2(RR_sets, s, res->first, delta, n, strat_to_node_and_RR, group_1, full_group_id);
 		}
 
 		for(int i = 0; i < d; i++){
@@ -137,7 +131,7 @@ pair<vector<double>*, double>* HillClimbing::run(int k, int theta, double delta,
 	return res;
 }
 
-void HillClimbing::iter_greedy(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, set<int>* group_1, int* full_group_id){
+int HillClimbing::iter_greedy(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, vector<int>* group_1, int* full_group_id){
 	vector<double>* delta = new vector<double>;
 
 	delta->resize(n, 0.0);
@@ -147,8 +141,7 @@ void HillClimbing::iter_greedy(vector<vector<int>*>* RR_sets, vector<double>* s,
 		for(int j = 0; j < RR_set->size(); j++){
 			int node = RR_set->at(j);
 			if(full_group_id){
-				set<int>::iterator it = group_1->find(node);
-				if((*full_group_id == 1 && (it != group_1->end())) || (*full_group_id == 2 && (it == group_1->end()))){
+				if(*full_group_id == group_1->at(node)){
 					continue;
 				}
 			}
@@ -179,16 +172,17 @@ void HillClimbing::iter_greedy(vector<vector<int>*>* RR_sets, vector<double>* s,
 
 	value->at(opt) += del;
 	delete delta;
+
+	return opt;
 }
 
-void HillClimbing::iter_greedy_2(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, vector<vector<pair<int, int>*>*>* strat_to_node_and_RR, set<int>* group_1, int* full_group_id){
+int HillClimbing::iter_greedy_2(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, vector<vector<pair<int, int>*>*>* strat_to_node_and_RR, vector<int>* group_1, int* full_group_id){
 	int d = strat_to_node_and_RR->size();
 	vector<double>* delta = new vector<double>;
 	delta->resize(d, 0.0);
 	for(int i = 0; i < d; i++){
 		if(full_group_id){
-			set<int>::iterator it = group_1->find(i);
-			if((*full_group_id == 1 && (it != group_1->end())) || (*full_group_id == 2 && (it == group_1->end()))){
+			if(*full_group_id == group_1->at(i)){
 				continue;
 			}
 		}
@@ -237,6 +231,7 @@ void HillClimbing::iter_greedy_2(vector<vector<int>*>* RR_sets, vector<double>* 
 
 	value->at(opt) += del;
 	delete delta;
+	return opt;
 }
 
 void HillClimbing::_generate_RR_set(int start_node, vector<bool>* active, vector<int>* RR_set){
@@ -283,7 +278,7 @@ double CIMM::_lambda2(double eps, int k, int n, double l, double delta, int d){
 	return 2 * n * (alpha_beta * alpha_beta) / (eps * eps / 2.0);
 }
 
-vector<double>* CIMM::run(int k, double delta, double eps, double l, set<int>* group_1){
+vector<double>* CIMM::run(int k, double delta, double eps, double l, vector<int>* group_1){
 	vector<vector<int>*>* RR_sets = new vector<vector<int>*>;
 	int n = gf->getSize();
 	double LB = 1.0;
@@ -424,19 +419,10 @@ double CIMM_pseudo::_lambda2(double eps, int k, int n, double l, double delta, i
 //revise needed
 //classical greedy alg for picking pseudo nodes (linear complexity)
 //return strategy and Fr
-pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo(vector<vector<int>*>* RR_sets, int k, double delta) {
+pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo(vector<vector<int>*>* RR_sets, int k, double delta, vector<int>* group_1) {
 	pair<vector<double>*, double>* res = new pair<vector<double>*, double>;
 	res->first = new vector<double>;
 	res->second = 0.0;
-
-	//bool RR_sets_null = (RR_sets == NULL);
-	//if (RR_sets_null) {
-	//	RR_sets = generate_RR_sets(theta);
-	//}
-
-	//vector<double>* s = new vector<double>;
-	//s->resize(RR_sets->size(), 1.0);
-	//int n = gf->getSize();
 
 	int n = gf->getSize();
 	int nR = RR_sets->size();
@@ -448,6 +434,7 @@ pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo(vector<vector<
 	{
 		node_to_RR->at(i) = new vector<int>;
 	}
+
 	for (int i = 0; i < nR; i++)
 	{
 		for (int j = 0; j < RR_sets->at(i)->size(); j++)
@@ -456,13 +443,25 @@ pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo(vector<vector<
 			node_to_RR->at(node)->push_back(i);
 		}
 	}
-
-	for (int iter = 0; iter < int(k/delta); iter++)
+ 
+  int* full_group_id = NULL;
+  int group_1_val = 0;
+	int group_2_val = 0;
+ 
+	for (int iter = 0; iter < int(k / delta); iter++)
 	{
-		int max = node_to_RR->at(0)->size();
+		int max = 0;
 		int imax = 0;
-		for (int i = 1; i < nP; i++)
+
+		for (int i = 0; i < nP; i++)
 		{
+			int node = i / int(1 / delta);
+			if (full_group_id) {
+				int it = group_1->at(node);
+				if ((*full_group_id == 1 && (it == 1)) || (*full_group_id == 2 && (it == 0))) {
+					continue;
+				}
+			}
 			int siz = node_to_RR->at(i)->size();
 			if (max < siz)
 			{
@@ -486,6 +485,25 @@ pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo(vector<vector<
 			}
 		}
 		node_to_RR->at(imax)->clear();
+   
+    if ((group_1) && (!full_group_id))
+    {
+			if (group_1->at(imax / int(1 / delta)) == 1)
+			{
+			  group_1_val += delta;
+			}
+			else {
+			  group_2_val += delta;
+			}
+			if (group_1_val >= int(double(k) / (2 * delta))) {
+				int full_group_id_val = 1;
+				full_group_id = &full_group_id_val;
+			}
+			else if (group_2_val >= k - int(double(k) / (2 * delta))) {
+				int full_group_id_val = 2;
+				full_group_id = &full_group_id_val;
+			}
+		}
 	}
 
 
@@ -495,75 +513,11 @@ pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo(vector<vector<
 	}
 	delete node_to_RR;
 
-
-	//res->first->resize(n, 0.0);
-	//res->second = 0.0;
-	////build table of size #RR_sets * #pseudo_nodes, tabl[i][j]=1 iff pseudo_nodes i is contained in jth RR set
-	//int RR_sets_size = RR_sets->size();
-	//int pseudo_node_size = int(1 / delta)*n;
-	//int **tabl;
-	//tabl = new int* [RR_sets_size];
-	//for (int i = 0; i < RR_sets_size; i++)
-	//{
-	//	tabl[i] = new int[pseudo_node_size];
-	//	for (int j = 0; j < pseudo_node_size; j++)
-	//	{
-	//		tabl[i][j] = 0;
-	//	}
-	//}
-	//for (int i = 0; i < RR_sets->size(); i++) {
-	//	vector<int>* RR_set = RR_sets->at(i);
-	//	for (int j = 0; j < RR_set->size(); j++) {
-	//		int node = RR_set->at(j);
-	//		tabl[i][node] = 1;
-	//	}
-	//}
-
-	//vector<int>* counter = new vector<int>(pseudo_node_size);
-	//for (int iter = 0; iter < int(k/delta); iter++)
-	//{
-	//	//calculate #RR sets covered for each pseudo-node
-	//	for (int i = 0; i < pseudo_node_size; i++)
-	//	{
-	//		counter->at(i) = 0;
-	//	}
-	//	for (int i = 0; i < counter->size(); i++)
-	//	{
-	//		for (int j = 0; j < RR_sets_size; j++)
-	//		{
-	//			if (tabl[j][i] == 1)
-	//			{
-	//				counter->at(i) += 1;
-	//			}
-	//		}
-	//	}
-	//	//pick the one with largest covering
-	//	auto maxpos = max_element(counter->begin(), counter->end());
-	//	int cover = *maxpos;
-	//	res->second += cover;
-	//	int lnode = distance(counter->begin(), maxpos);
-	//	res->first->at(lnode / int(1 / delta)) += delta;//k->1
-	//	//make col of lnode 0 and all RR sets lnode covers 0
-	//	for (int i = 0; i < RR_sets_size; i++)
-	//	{
-	//		if (tabl[i][lnode] == 1)
-	//		{
-	//			//tabl[i][lnode] = 0;
-	//			for (int j = 0; j < pseudo_node_size; j++)
-	//			{
-	//				tabl[i][j] = 0;
-	//			}
-	//		}
-	//	}
-	//}
-	//delete counter;
-	//delete tabl;
-
 	res->second = res->second / nR * n;//* (1 + int(1/delta));
 	return res;
 }
 
-vector<double>* CIMM_pseudo::run(int k, double delta, double eps, double l) {
+vector<double>* CIMM_pseudo::run(int k, double delta, double eps, double l, vector<int>* group_1) {
 	vector<vector<int>*>* RR_sets = new vector<vector<int>*>;
 	int n = gf->getSize();
 	int n_pseudo = n;// * (1 + int(1 / delta));
@@ -618,7 +572,7 @@ vector<double>* CIMM_pseudo::run(int k, double delta, double eps, double l) {
 				generate_RR_sets(pseudo_value, 1, RR_sets);
 				j = RR_sets->size();
 			}
-			pair<vector<double>*, double>* res = node_selection_pseudo(RR_sets, k, delta);
+			pair<vector<double>*, double>* res = node_selection_pseudo(RR_sets, k, delta, group_1);
 			if (res->second >= (1 + eps) * y) {//revised
 				LB = res->second / (1 + eps);
 				break;
@@ -637,7 +591,7 @@ vector<double>* CIMM_pseudo::run(int k, double delta, double eps, double l) {
 
 		cout << "RR_sets' size=" << RR_sets->size() << endl;
 
-		pair<vector<double>*, double>* res = node_selection_pseudo(RR_sets, k, delta);
+		pair<vector<double>*, double>* res = node_selection_pseudo(RR_sets, k, delta, group_1);
 		for (int i = 0; i < RR_sets->size(); i++) {
 			delete RR_sets->at(i);
 		}
@@ -688,7 +642,7 @@ vector<double>* CIMM_pseudo::run(int k, double delta, double eps, double l) {
 				generate_RR_sets_2(1, RR_sets, k, delta);
 				j = RR_sets->size();
 			}
-			pair<vector<double>*, double>* res = node_selection_pseudo_2(RR_sets, d, k, delta);
+			pair<vector<double>*, double>* res = node_selection_pseudo_2(RR_sets, d, k, delta, group_1);
 			if (res->second >= (1 + eps) * y) {//revised
 				LB = res->second / (1 + eps);
 				break;
@@ -707,7 +661,7 @@ vector<double>* CIMM_pseudo::run(int k, double delta, double eps, double l) {
 
 		cout << "RR_sets' size=" << RR_sets->size() << endl;
 
-		pair<vector<double>*, double>* res = node_selection_pseudo_2(RR_sets, d, k, delta);
+		pair<vector<double>*, double>* res = node_selection_pseudo_2(RR_sets, d, k, delta, group_1);
 		for (int i = 0; i < RR_sets->size(); i++) {
 			delete RR_sets->at(i);
 		}
@@ -850,19 +804,10 @@ vector<vector<int>*>* CIMM_pseudo::generate_RR_sets_2(int theta, vector<vector<i
 	return RR_sets;
 }
 
-pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo_2(vector<vector<int>*>* RR_sets, int d, int k, double delta) {
+pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo_2(vector<vector<int>*>* RR_sets, int d, int k, double delta, vector<int>* group_1) {
 	pair<vector<double>*, double>* res = new pair<vector<double>*, double>;
 	res->first = new vector<double>;
 	res->second = 0.0;
-
-	//bool RR_sets_null = (RR_sets == NULL);
-	//if (RR_sets_null) {
-	//	RR_sets = generate_RR_sets(theta);
-	//}
-
-	//vector<double>* s = new vector<double>;
-	//s->resize(RR_sets->size(), 1.0);
-	//int n = gf->getSize();
 
 	int n = gf->getSize();
 	int nR = RR_sets->size();
@@ -882,13 +827,24 @@ pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo_2(vector<vecto
 			node_to_RR->at(node)->push_back(i);
 		}
 	}
-
+  int* full_group_id = NULL;
+  int group_1_val = 0;
+	int group_2_val = 0;
+  
 	for (int iter = 0; iter < int(k / delta); iter++)
 	{
-		int max = node_to_RR->at(0)->size();
+		int max = 0;
 		int imax = 0;
-		for (int i = 1; i < nP; i++)
+
+		for (int i = 0; i < nP; i++)
 		{
+			int node = i / int(k / delta);
+			if (full_group_id) {
+				int it = group_1->at(node);
+				if ((*full_group_id == 1 && (it == 1)) || (*full_group_id == 2 && (it == 0))) {
+					continue;
+				}
+			}
 			int siz = node_to_RR->at(i)->size();
 			if (max < siz)
 			{
@@ -912,8 +868,27 @@ pair<vector<double>*, double>* CIMM_pseudo::node_selection_pseudo_2(vector<vecto
 			}
 		}
 		node_to_RR->at(imax)->clear();
+   
+ 		if ((group_1) && (!full_group_id)) 
+    {
+			int it = group_1->at(imax / int(k / delta));
+			if (it == 1)
+			{
+				group_1_val += delta;
+			}
+			else {
+				group_2_val += delta;
+			}
+		  if (group_1_val >= int(double(k) / (2 * delta))) {
+		    int full_group_id_val = 1;
+		    full_group_id = &full_group_id_val;
+		  }
+		  else if (group_2_val >= k - int(double(k) / (2 * delta))) {
+		    int full_group_id_val = 2;
+		    full_group_id = &full_group_id_val;
+		  }
+		}
 	}
-
 
 	for (int i = 0; i < node_to_RR->size(); i++)
 	{

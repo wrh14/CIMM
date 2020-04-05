@@ -37,9 +37,9 @@ public:
 		}
 	}
 	double function(double x);
-	pair<vector<double>*, double>* run(int k, int theta, double delta, vector<vector<int>*>* RR_sets=NULL, set<int>* group_1=NULL);
-	void iter_greedy(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, set<int>* group_1=NULL, int* full_group_id=NULL);
-	void iter_greedy_2(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, vector<vector<pair<int, int>*>*>* strat_to_node_and_RR, set<int>* group_1=NULL, int* full_group_id=NULL);
+	pair<vector<double>*, double>* run(int k, int theta, double delta, vector<vector<int>*>* RR_sets=NULL, vector<int>* group_1=NULL);
+	int iter_greedy(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, vector<int>* group_1=NULL, int* full_group_id=NULL);
+	int iter_greedy_2(vector<vector<int>*>* RR_sets, vector<double>* s, vector<double>* value, double del, int n, vector<vector<pair<int, int>*>*>* strat_to_node_and_RR, vector<int>* group_1=NULL, int* full_group_id=NULL);
 	//double node_selection_pseudo(vector<vector<int>*>* RR_sets, int k, double delta, int n);
 	vector< vector<int>*>* generate_RR_sets(int theta);
 	void _generate_RR_set(int start_node, vector<bool>* active, vector<int>* RR_set);
@@ -53,7 +53,7 @@ public:
 		this->hill_climbing = hill_climbing;
 		this->gf = gf;
 	};
-	vector<double>* run(int k, double delta, double eps, double l, set<int>* group_1=NULL);
+	vector<double>* run(int k, double delta, double eps, double l, vector<int>* group_1=NULL);
 	vector< vector<int>*>* generate_RR_sets(int theta, vector<vector<int>*>* RR_sets=NULL);
 	void _generate_RR_set(int start_node, vector<bool>* active, vector<int>* RR_set);
 	double _lambda2(double eps, int k, int n, double l, double delta, int d);
@@ -68,13 +68,13 @@ public:
 		this->hill_climbing = hill_climbing;
 		this->gf = gf;
 	};
-	vector<double>* run(int k, double delta, double eps, double l);
+	vector<double>* run(int k, double delta, double eps, double l, vector<int>* group_1 = NULL);
 	vector< vector<int>*>* generate_RR_sets(vector<double> pseudo_value, int theta, vector<vector<int>*>* RR_sets = NULL);
 	void _generate_RR_set(vector<double> pseudo_value, int start_node, vector<bool>* active, vector<int>* RR_set);
 	vector< vector<int>*>* generate_RR_sets_2(int theta, vector<vector<int>*>* RR_sets, int k, double delta);
 	void _generate_RR_set_2(int start_node, vector<bool>* active, vector<int>* RR_set, int k, double delta);
 	double _lambda2(double eps, int k, int n, double l, double delta, int d);
 	double _lambda(double eps, int k, double delta, int n, double l, int d);
-	pair<vector<double>*, double>* node_selection_pseudo(vector<vector<int>*>* RR_sets, int k, double delta);
-	pair<vector<double>*, double>* node_selection_pseudo_2(vector<vector<int>*>* RR_sets, int d, int k, double delta);
+	pair<vector<double>*, double>* node_selection_pseudo(vector<vector<int>*>* RR_sets, int k, double delta, vector<int>* group_1 = NULL);
+	pair<vector<double>*, double>* node_selection_pseudo_2(vector<vector<int>*>* RR_sets, int d, int k, double delta, vector<int>* group_1 = NULL);
 };

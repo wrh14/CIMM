@@ -6,7 +6,7 @@ INCLUDE = $(wildcard ./*.h)
 SOURCES = $(wildcard ./*.cpp)
 INCLUDE_DIRS = -I./*.h
 
-TARGET = nodeSelect
+TARGET = run
 
 OBJECTS = $(patsubst %.cpp,%.o,$(SOURCES))
 

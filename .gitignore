@@ -1,6 +1,7 @@
 *.o
 maxinfluence/
 data/
+data_2/
 baseline/nodeSelect
 result/
 draw/
